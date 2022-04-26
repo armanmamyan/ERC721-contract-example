@@ -133,7 +133,7 @@ contract MerkleTreeWhitelist is ERC721, Ownable {
 
   function verifyUser (bytes32[] calldata _merkleProof) public view returns (bool) {
       // Generate leaf node from callee
-    bytes32 leaf = keccak256(abi.encode(msg.sender));
+    bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
 
     return MerkleProof.verify(_merkleProof, merkleRoot, leaf);
   }
@@ -154,7 +154,7 @@ contract MerkleTreeWhitelist is ERC721, Ownable {
     require(!whitelistClaimed[msg.sender], 'Address already claimed');
     
     // Generate leaf node from callee
-    bytes32 leaf = keccak256(abi.encode(msg.sender));
+    bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
 
     // Check the proof
     require(MerkleProof.verify(_merkleProof, merkleRoot, leaf), "Invalid Merkle Proof");
