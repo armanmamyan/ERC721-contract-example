@@ -20,7 +20,7 @@ contract MerkleTreeWhitelist is ERC721, Ownable {
   uint256 private reservedCount = 0;
   uint256 private maxReserveCount = 37;
 
-  bytes32 public merkleRoot;
+  bytes32 public merkleRoot = YOUR_ROOT_HASH;
 
   string _baseTokenURI;
 
@@ -42,7 +42,6 @@ contract MerkleTreeWhitelist is ERC721, Ownable {
 
   constructor(string memory baseURI) ERC721("Merkle Tree Whitelist", "MTW") {
     setBaseURI(baseURI);
-    setSyncAddress(YOU_MERKLE_ROOT_HASH);
   }
 
   modifier saleIsOpen {
@@ -72,7 +71,7 @@ contract MerkleTreeWhitelist is ERC721, Ownable {
     emit SaleActivation(val);
   }
 
-  function setSyncAddress(address _root) public onlyOwner {
+  function setSyncAddress(bytes32 _root) public onlyOwner {
     merkleRoot = _root;
   }
 
@@ -131,11 +130,19 @@ contract MerkleTreeWhitelist is ERC721, Ownable {
     }
   }
 
-  function verifyUser (bytes32[] calldata _merkleProof) public view returns (bool) {
-      // Generate leaf node from callee
-    bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
+  function verifyUser (bytes32[] calldata _merkleProof) public view returns (uint256) {
+    // 406 means Not Acceptable
+    uint256 verificationStatus = 406; 
 
-    return MerkleProof.verify(_merkleProof, merkleRoot, leaf);
+    // Generate leaf node from callee
+    bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
+    
+    if(MerkleProof.verify(_merkleProof, merkleRoot, leaf)) {
+        // 200 means successfull verification
+        verificationStatus = 200;
+    }
+
+    return verificationStatus;
   }
 
   function reserveToCustomWallet(address _walletAddress, uint256 _count) public onlyAuthorized {
@@ -148,13 +155,13 @@ contract MerkleTreeWhitelist is ERC721, Ownable {
   function preSaleMint(bytes32[] calldata _merkleProof, uint256 _count) public payable saleIsOpen {
     uint256 mintIndex = _tokenSupply.current();
 
-    require(isPresaleActive, 'Allow List is not active');
+    require(isPresaleActive, "Presale is not active");
     
     // Make sure user has not already claimed the tokens
-    require(!whitelistClaimed[msg.sender], 'Address already claimed');
+    require(!whitelistClaimed[msg.sender], "Address already claimed");
     
     // Generate leaf node from callee
-    bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
+    bytes32 leaf = keccak256(abi.encode(msg.sender));
 
     // Check the proof
     require(MerkleProof.verify(_merkleProof, merkleRoot, leaf), "Invalid Merkle Proof");
