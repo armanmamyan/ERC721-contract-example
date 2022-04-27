@@ -33,8 +33,6 @@ contract MerkleTreeWhitelist is ERC721, Ownable {
   uint256 public allowListMaxMint = 2;
 
 
-  mapping(address => bool) private _allowList;
-
   // Whitelisted
   mapping(address => bool) public whitelistClaimed;
 
@@ -85,10 +83,6 @@ contract MerkleTreeWhitelist is ERC721, Ownable {
 
   function setAllowListMaxMint(uint256 maxMint) external  onlyAuthorized {
     allowListMaxMint = maxMint;
-  }
-
-  function checkIfOnAllowList(address addr) external view returns (bool) {
-    return _allowList[addr];
   }
 
   function setReserveAtATime(uint256 val) public onlyAuthorized {
